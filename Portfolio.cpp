@@ -33,6 +33,17 @@ int Portfolio::add_transaction(Transaction t) {
     return 1;
   }
 
+  if (!transactions.empty()) {
+    string prev_date = transactions.back().get_date();
+    string prev_year = prev_date.substr(0, 4);
+    string t_date = t.get_date();
+    string t_year = t_date.substr(0, 4);
+
+    if (prev_year != t_year) {
+      res = calculate_value(prev_year);
+    }
+  }
+
   transactions.push_back(t);
 
   return 0;
@@ -71,6 +82,25 @@ int Portfolio::handle_stock_or_convert_update(Transaction t) {
   string t_type = t.get_type();
 
   auto hol_it = holdings.find(t.get_ticker());
+  auto cash_it = holdings.find(t.get_curr());
+
+  // Verify cash exists
+  if (cash_it == holdings.end()) {
+    // Throw error if no currency to convert
+    if (t_type == "CONVERT") {
+      cerr << "CAN'T CONVERT " << t.get_curr() << " TO " << t.get_ticker()
+           << "SINCE NO " << t.get_curr() << " HELD" << endl;
+      return 1;
+    } else if (t_type == "BUY") {
+      cerr << "CAN'T BUY, DO NOT HOLD " << t.get_curr() << endl;
+      return 1;
+    }
+    add_holding(t.get_curr(), Holding(0, 1, t.get_curr(), t.get_curr()));
+
+    cash_it = holdings.find(t.get_curr());
+  }
+
+  Holding &cash = cash_it->second;
 
   // Verify holding exists
   if (hol_it == holdings.end()) {
@@ -88,22 +118,6 @@ int Portfolio::handle_stock_or_convert_update(Transaction t) {
   }
 
   Holding &hol = hol_it->second;
-
-  auto cash_it = holdings.find(t.get_curr());
-
-  // Verify cash exists
-  if (cash_it == holdings.end()) {
-    // Throw error if no currency to convert
-    if (t_type == "CONVERT") {
-      cerr << "CAN'T CONVERT " << t.get_curr() << " TO " << t.get_ticker()
-           << "SINCE NO " << t.get_curr() << " HELD" << endl;
-    }
-    add_holding(t.get_curr(), Holding(0, 1, t.get_curr(), t.get_curr()));
-
-    cash_it = holdings.find(t.get_curr());
-  }
-
-  Holding &cash = cash_it->second;
 
   float cash_held = cash.get_quantity();
   float total_price = t.get_quantity() * t.get_price();
@@ -157,6 +171,8 @@ int Portfolio::handle_stock_or_convert_update(Transaction t) {
   return 0;
 }
 
+int Portfolio::calculate_value(string year) { return 0; }
+
 int main() {
   Portfolio p = Portfolio("My Portfolio", 9.95, 0.15);
 
@@ -171,5 +187,13 @@ int main() {
 
   p.print_holdings();
 
+  cout << "\n===================================\n" << endl;
+  p.add_transaction("2024-05-01", "BUY", 10, 10.95, "NVDA", "USD");
+
+  p.print_holdings();
+  res = p.add_transaction("2024-05-01", "DEPOSIT", 1000, 1.0, "CAD", "CAD");
+  res = p.add_transaction("2025-05-01", "DEPOSIT", 1000, 1.0, "CAD", "CAD");
+  cout << "\n===================================\n" << endl;
+  p.print_holdings();
   return 0;
 }

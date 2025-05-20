@@ -18,6 +18,7 @@ private:
   unordered_map<string, class Holding> holdings; // Current holdings
   float transaction_fee;
   float dividend_tax;
+  vector<int> value_yoy;
 
 public:
   Portfolio() {}
@@ -42,7 +43,7 @@ public:
 
   void add_holding(string ticker, Holding h) { holdings.insert({ticker, h}); }
 
-  vector<int> calculate_yoy_value();
+  int calculate_value(string year);
 
   void print_holdings() const {
     cout << "PRINTING HOLDINGS" << endl;
