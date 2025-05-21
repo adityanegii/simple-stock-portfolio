@@ -8,20 +8,22 @@ using namespace std;
 
 class Holding {
 private:
-  int quantity;
+  float quantity;
   float price;
   string ticker;
   char curr[4];
+  string type;
 
 public:
   Holding() {}
 
-  Holding(int in_quantity, float in_price, string in_ticker, string in_curr);
+  Holding(float in_quantity, float in_price, string in_ticker, string in_curr,
+          string in_type);
   void print() const;
 
-  int get_quantity() { return quantity; }
+  float get_quantity() { return quantity; }
 
-  int set_quantity(int in_quantity) {
+  float set_quantity(float in_quantity) {
     quantity = in_quantity;
     return 0;
   }
@@ -40,6 +42,18 @@ public:
   const char *get_curr() { return curr; }
 
   int set_curr(string &in_curr);
+
+  int set_type(string in_type) {
+    if (in_type != "CASH" && in_type != "STOCK") {
+      cerr << "INVALID TYPE FOR HOLDING" << endl;
+      return 1;
+    }
+
+    type = in_type;
+    return 0;
+  }
+
+  string get_type() { return type; }
 };
 
 #endif

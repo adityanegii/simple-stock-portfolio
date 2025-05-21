@@ -18,7 +18,7 @@ private:
 public:
   Transaction() {}
 
-  Transaction(string in_date, string in_type, int in_quantity, float in_price,
+  Transaction(string in_date, string in_type, float in_quantity, float in_price,
               string in_ticker, string in_curr);
   void print() const;
 
@@ -30,9 +30,9 @@ public:
 
   int set_type(string in_type);
 
-  int get_quantity() { return quantity; }
+  float get_quantity() { return quantity; }
 
-  int set_quantity(int in_quantity) {
+  int set_quantity(float in_quantity) {
     quantity = in_quantity;
     return 0;
   }

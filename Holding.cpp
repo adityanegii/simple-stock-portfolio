@@ -2,18 +2,19 @@
 
 using namespace std;
 
-Holding::Holding(int in_quantity, float in_price, string in_ticker,
-                 string in_curr) {
+Holding::Holding(float in_quantity, float in_price, string in_ticker,
+                 string in_curr, string in_type) {
   set_quantity(in_quantity);
   set_price(in_price);
   set_ticker(in_ticker);
   set_curr(in_curr);
+  set_type(in_type);
 }
 
 void Holding::print() const {
   cout << "Holding:" << "\n\tQuantity: " << quantity << "\n\tPrice: " << price
        << "\n\tTicker: " << ticker << "\n\tPurchasing currency: " << curr
-       << endl;
+       << "\n\tType: " << type << endl;
 }
 
 int Holding::set_ticker(string in_ticker) {

@@ -45,6 +45,10 @@ public:
 
   int calculate_value(string year);
 
+  int export_portfolio();
+
+  int import_portfolio(const string &filename);
+
   void print_holdings() const {
     cout << "PRINTING HOLDINGS" << endl;
     for (auto it = holdings.begin(); it != holdings.end(); it++) {

@@ -1,7 +1,9 @@
 #include "Portfolio.h"
 #include "Transaction.h"
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 using namespace std;
@@ -29,7 +31,7 @@ int Portfolio::add_transaction(Transaction t) {
   int res = update_holding(t);
 
   if (res != 0) {
-    cerr << "Transaction failed." << endl;
+    cerr << "Transaction failed.\n\n" << endl;
     return 1;
   }
 
@@ -67,7 +69,8 @@ int Portfolio::handle_cash_update(Transaction t) {
   auto cash_it = holdings.find(t.get_ticker());
 
   if (cash_it == holdings.end()) {
-    add_holding(t.get_ticker(), Holding(0, 1, t.get_ticker(), t.get_curr()));
+    add_holding(t.get_ticker(),
+                Holding(0, 1, t.get_ticker(), t.get_curr(), "CASH"));
 
     cash_it = holdings.find(t.get_ticker());
   }
@@ -95,7 +98,8 @@ int Portfolio::handle_stock_or_convert_update(Transaction t) {
       cerr << "CAN'T BUY, DO NOT HOLD " << t.get_curr() << endl;
       return 1;
     }
-    add_holding(t.get_curr(), Holding(0, 1, t.get_curr(), t.get_curr()));
+    add_holding(t.get_curr(),
+                Holding(0, 1, t.get_curr(), t.get_curr(), "CASH"));
 
     cash_it = holdings.find(t.get_curr());
   }
@@ -112,7 +116,14 @@ int Portfolio::handle_stock_or_convert_update(Transaction t) {
       cerr << "NO HOLDINGS OF " << t.get_ticker() << " FOUND" << endl;
       return 1;
     }
-    add_holding(t.get_ticker(), Holding(0, 0, t.get_ticker(), t.get_curr()));
+
+    if (t_type == "CONVERT") {
+      add_holding(t.get_ticker(),
+                  Holding(0, 1, t.get_ticker(), t.get_curr(), "CASH"));
+    } else {
+      add_holding(t.get_ticker(),
+                  Holding(0, 1, t.get_ticker(), t.get_curr(), "STOCK"));
+    }
 
     hol_it = holdings.find(t.get_ticker());
   }
@@ -130,6 +141,9 @@ int Portfolio::handle_stock_or_convert_update(Transaction t) {
       return 1;
     }
 
+    hol.set_price((hol.get_quantity() * hol.get_price() +
+                   (t.get_quantity() * t.get_price())) /
+                  (hol.get_quantity() + t.get_quantity()));
     cash.set_quantity(cash_held - total_price);
     hol.set_quantity(hol.get_quantity() + t.get_quantity());
 
@@ -140,6 +154,9 @@ int Portfolio::handle_stock_or_convert_update(Transaction t) {
       return 1;
     }
 
+    hol.set_price((hol.get_quantity() * hol.get_price() +
+                   (t.get_quantity() * t.get_price())) /
+                  (hol.get_quantity() + t.get_quantity()));
     cash.set_quantity(cash_held - transaction_fee - total_price);
     hol.set_quantity(hol.get_quantity() + t.get_quantity());
 
@@ -173,27 +190,81 @@ int Portfolio::handle_stock_or_convert_update(Transaction t) {
 
 int Portfolio::calculate_value(string year) { return 0; }
 
-int main() {
-  Portfolio p = Portfolio("My Portfolio", 9.95, 0.15);
+int Portfolio::export_portfolio() { return 0; };
 
-  int res = p.add_transaction("2024-05-01", "DEPOSIT", 1000, 1.0, "CAD", "CAD");
-  if (res != 0) {
-    cerr << "PROBLEM IN ADDING TRANSACTION" << endl;
+int Portfolio::import_portfolio(const string &filename) {
+  ifstream file(filename);
+  if (!file.is_open()) {
+    cerr << "Failed to open file: " << filename << endl;
     return 1;
   }
-  cout << "SUCCESSFULLY ADDED TRANSACTION" << endl;
-  p.print_transactions();
-  cout << "\n===================================\n" << endl;
 
-  p.print_holdings();
+  string line;
+  getline(file, line);
+  int res;
 
-  cout << "\n===================================\n" << endl;
-  p.add_transaction("2024-05-01", "BUY", 10, 10.95, "NVDA", "USD");
+  while (getline(file, line)) {
+    stringstream ss(line);
+    string date, type, ticker, curr;
+    float quantity, price;
 
-  p.print_holdings();
-  res = p.add_transaction("2024-05-01", "DEPOSIT", 1000, 1.0, "CAD", "CAD");
-  res = p.add_transaction("2025-05-01", "DEPOSIT", 1000, 1.0, "CAD", "CAD");
-  cout << "\n===================================\n" << endl;
-  p.print_holdings();
-  return 0;
-}
+    // date,ticker,type,quantity,price,curr
+    getline(ss, date, ',');
+    getline(ss, ticker, ',');
+    getline(ss, type, ',');
+    ss >> quantity;
+    ss.ignore();
+    ss >> price;
+    ss.ignore();
+    getline(ss, curr, ',');
+
+    Transaction t(date, type, quantity, price, ticker, curr);
+
+    res = add_transaction(t);
+
+    if (res != 0) {
+      cerr << "ERROR ADDING TRANSACTION\n\n" << endl;
+      break;
+    }
+  }
+
+  file.close();
+  return res;
+};
+
+// int main() {
+//   Portfolio p = Portfolio("My Portfolio", 9.95, 0.15);
+//
+//   // Transaction should be successful
+//   int res = p.add_transaction("2024-05-01", "DEPOSIT", 1000, 1.0, "CAD",
+//   "CAD"); p.print_holdings(); cout <<
+//   "\n===================================\n" << endl;
+//
+//   // Transaction should fail
+//   res = p.add_transaction("2024-05-01", "BUY", 10, 10.95, "NVDA", "USD");
+//   p.print_holdings();
+//   cout << "\n===================================\n" << endl;
+//
+//   // Transactions should pass
+//   res = p.add_transaction("2024-05-01", "DEPOSIT", 1000, 1.0, "CAD", "CAD");
+//   res = p.add_transaction("2025-05-01", "CONVERT", 1000, 1.3, "USD", "CAD");
+//   p.print_holdings();
+//   cout << "\n===================================\n" << endl;
+//
+//   // Transaction should pass
+//   res = p.add_transaction("2024-05-01", "BUY", 10, 10.95, "NVDA", "USD");
+//   p.print_holdings();
+//
+//   cout << "\n===================================\n" << endl;
+//
+//   // Transaction should fail
+//   res = p.add_transaction("2024-05-01", "SELL", 15, 12.95, "NVDA", "USD");
+//   res = p.add_transaction("2024-05-01", "SELL", 15, 12.95, "GOOGL", "USD");
+//
+//   // Transaction should pass
+//   res = p.add_transaction("2024-05-01", "SELL", 5, 13.95, "NVDA", "USD");
+//
+//   p.print_holdings();
+//   p.print_transactions();
+//   return 0;
+// }

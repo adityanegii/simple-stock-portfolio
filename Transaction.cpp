@@ -1,7 +1,7 @@
 #include "Transaction.h"
 #include <cstddef>
 
-Transaction::Transaction(string in_date, string in_type, int in_quantity,
+Transaction::Transaction(string in_date, string in_type, float in_quantity,
                          float in_price, string in_ticker, string in_curr) {
   int res = set_date(in_date);
   if (res != 0) {
