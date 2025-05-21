@@ -190,7 +190,25 @@ int Portfolio::handle_stock_or_convert_update(Transaction t) {
 
 int Portfolio::calculate_value(string year) { return 0; }
 
-int Portfolio::export_portfolio() { return 0; };
+int Portfolio::export_portfolio(const string &filename) {
+
+  ofstream file(filename);
+  if (!file.is_open()) {
+    cerr << "Failed to open file: " << filename << endl;
+    return 1;
+  }
+
+  file << "date,ticker,type,quantity,price,trade_currency\n";
+
+  for (const Transaction &t : transactions) {
+    file << t.get_date() << "," << t.get_ticker() << "," << t.get_type() << ","
+         << t.get_quantity() << "," << t.get_price() << "," << t.get_curr()
+         << "\n";
+  }
+
+  file.close();
+  return 0;
+};
 
 int Portfolio::import_portfolio(const string &filename) {
   ifstream file(filename);

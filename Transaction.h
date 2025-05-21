@@ -22,33 +22,33 @@ public:
               string in_ticker, string in_curr);
   void print() const;
 
-  const char *get_date() { return date; }
+  const char *get_date() const { return date; }
 
   int set_date(string &in_date);
 
-  string get_type() { return type; }
+  string get_type() const { return type; }
 
   int set_type(string in_type);
 
-  float get_quantity() { return quantity; }
+  float get_quantity() const { return quantity; }
 
   int set_quantity(float in_quantity) {
     quantity = in_quantity;
     return 0;
   }
 
-  float get_price() { return price; }
+  float get_price() const { return price; }
 
   int set_price(float in_price) {
     price = in_price;
     return 0;
   }
 
-  string get_ticker() { return ticker; }
+  string get_ticker() const { return ticker; }
 
   int set_ticker(string in_ticker);
 
-  const char *get_curr() { return curr; }
+  const char *get_curr() const { return curr; }
 
   int set_curr(string &in_curr);
 };

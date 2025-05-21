@@ -10,4 +10,6 @@ int main() {
   p.print_transactions();
   cout << "=====================" << endl;
   p.print_holdings();
+
+  p.export_portfolio("transaction_history_export.csv");
 }

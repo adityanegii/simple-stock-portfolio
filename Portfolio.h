@@ -45,7 +45,7 @@ public:
 
   int calculate_value(string year);
 
-  int export_portfolio();
+  int export_portfolio(const string &filename);
 
   int import_portfolio(const string &filename);
 
